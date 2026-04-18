@@ -3,10 +3,10 @@
   "configurations": [
     {
       "name": "hidden-gems",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["browser-sync", "start", "--server", "--port", "8000", "--files", "**", "--no-open", "--watchOptions.usePolling=true", "--watchOptions.interval=500"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
       "port": 8000,
-      "autoPort": false
+      "autoPort": true
     }
   ]
 }
