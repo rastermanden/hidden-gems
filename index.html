@@ -136,6 +136,27 @@
   }
   .map-crosshair.active { display: block; }
 
+  .locate-fab {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: white;
+    border: 1.5px solid var(--border-warm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: background 0.15s, transform 0.15s;
+    color: var(--text);
+  }
+  .locate-fab:active { transform: scale(0.9); background: var(--ivory); }
+  .locate-fab.locating { color: var(--terracotta); }
+
   /* Bottom sheet list */
   .sheet {
     background: var(--card);
@@ -907,6 +928,15 @@
       </svg>
     </div>
   </div>
+  <button class="locate-fab" id="locateFab" onclick="locateMe()" title="Zoom to my location">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <line x1="12" y1="2" x2="12" y2="6"/>
+      <line x1="12" y1="18" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="6" y2="12"/>
+      <line x1="18" y1="12" x2="22" y2="12"/>
+    </svg>
+  </button>
 </div>
 
 <!-- Pick bar (step 1: pan map to location) -->
@@ -1568,6 +1598,23 @@ async function loadGems() {
 // Close overlays on background tap
 document.getElementById('addOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeAdd(); });
 document.getElementById('detailOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeDetail(); });
+
+function locateMe() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+  const btn = document.getElementById('locateFab');
+  btn.classList.add('locating');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      btn.classList.remove('locating');
+      map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, { duration: 1 });
+    },
+    () => {
+      btn.classList.remove('locating');
+      showToast('Could not get your location');
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
 
 initMap();
 </script>
