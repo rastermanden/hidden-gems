@@ -4,7 +4,7 @@
     {
       "name": "hidden-gems",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", ".", "--listen", "8000"],
+      "runtimeArgs": ["browser-sync", "start", "--server", "--port", "8000", "--files", "**", "--no-open", "--watchOptions.usePolling=true", "--watchOptions.interval=500"],
       "port": 8000,
       "autoPort": false
     }
