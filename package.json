@@ -2,6 +2,17 @@
   "name": "hidden-gems",
   "version": "1.0.0",
   "scripts": {
-    "start": "npx browser-sync start --server --port 8000 --files '**' --no-open --watchOptions.usePolling=true --watchOptions.interval=500"
+    "start": "vite --port 8000 --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.6",
+    "vite": "^8.0.8"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.103.3",
+    "leaflet": "^1.9.4",
+    "vue": "^3.5.32"
   }
 }
