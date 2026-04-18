@@ -590,7 +590,9 @@ const SUPABASE_URL = 'https://ptnzegjtpvwlzuvmodac.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bnplZ2p0cHZ3bHp1dm1vZGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMjQ1MjAsImV4cCI6MjA5MDgwMDUyMH0.5febQSFyDSz6R0p-5ctruat6QnJ2aeKNWnnDAFytwfk';
 
 const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { flowType: 'pkce' }
+});
 
 const EMOJIS = ['🌿','🏞️','🌊','🏛️','🌸','🍃','🌄','🗿','🌺','🦋','🌙','⛰️'];
 let gems = [];
@@ -615,7 +617,10 @@ async function sendMagicLink() {
   const btn = document.getElementById('authBtn');
   btn.disabled = true;
   btn.textContent = 'Sending...';
-  const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  const redirectTo = window.location.hostname === 'localhost'
+    ? 'https://rastermanden.github.io/hidden-gems/'
+    : window.location.origin + window.location.pathname;
+  const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: redirectTo } });
   if (error) {
     btn.disabled = false;
     btn.textContent = 'Send magic link';
