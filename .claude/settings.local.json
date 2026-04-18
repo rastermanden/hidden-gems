@@ -9,7 +9,15 @@
       "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" diff --stat)",
       "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" status --short)",
       "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" add index.html .claude/settings.local.json)",
-      "Bash(git -C C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd commit -m ' *)"
+      "Bash(git -C C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd commit -m ' *)",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" push -u origin claude/silly-edison-ff97cd)",
+      "Bash(gh pr create --title 'Add emoji picker, expand icon set, and show emoji on map markers' --body ' *)",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" add index.html)",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-eden-ff97cd\" push)",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" push)",
+      "Bash(gh pr *)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd/.claude/settings.local.json','utf8'\\)\\); console.log\\('valid'\\)\")",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" diff .claude/settings.local.json)"
     ]
   },
   "hooks": {
@@ -18,7 +26,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"IMPORTANT: Immediately start the dev server in the preview panel using preview_start with command \\\"npm start\\\" and port 8000. Do this before anything else.\"}}'",
+            "command": "git fetch origin main:main 2>&1; echo '{\"systemMessage\": \"✓ main synced from origin\", \"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"Local main branch has been synced from origin/main.\"}}'",
+            "statusMessage": "Pulling latest main..."
+          },
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"✓ Dev preview will open on port 8000\", \"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"IMPORTANT: Immediately start the dev server in the preview panel using preview_start with command \\\"npm start\\\" and port 8000. Do this before anything else.\"}}'",
             "statusMessage": "Starting dev preview..."
           }
         ]
