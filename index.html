@@ -1252,16 +1252,23 @@ async function saveGem() {
 
   const filesToUpload = selectedFiles.filter(Boolean);
   if (filesToUpload.length) {
-    const uploads = filesToUpload.map(async (file, i) => {
+    const urls = [];
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
       const ext = file.name.split('.').pop();
       const path = `${currentUser.id}/${data.id}_${i}_${Date.now()}.${ext}`;
       const { error: upErr } = await db.storage.from('gem-photos').upload(path, file);
-      if (upErr) return;
+      if (upErr) continue;
       const { data: urlData } = db.storage.from('gem-photos').getPublicUrl(path);
-      await db.from('gem_photos').insert({ gem_id: data.id, photo_url: urlData.publicUrl, sort_order: i });
-      if (i === 0) data.photo_url = urlData.publicUrl;
-    });
-    await Promise.all(uploads);
+      urls.push(urlData.publicUrl);
+    }
+    if (urls.length) {
+      data.photo_url = urls[0];
+      await db.from('gems').update({ photo_url: urls[0] }).eq('id', data.id);
+      await Promise.all(urls.map((url, i) =>
+        db.from('gem_photos').insert({ gem_id: data.id, photo_url: url, sort_order: i })
+      ));
+    }
   }
 
   gems.unshift(data);
