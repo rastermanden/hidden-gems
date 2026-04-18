@@ -1015,7 +1015,7 @@ function addMarker(gem) {
   if (!gem.lat || !gem.lng) return;
   if (markers[gem.id]) { markers[gem.id].remove(); }
   const m = L.marker([gem.lat, gem.lng], { icon: createMarkerIcon(gem.emoji) }).addTo(map);
-  m.on('click', () => showDetail(gem));
+  m.on('click', () => showDetail(gem).catch(() => {}));
   markers[gem.id] = m;
 }
 
@@ -1057,14 +1057,14 @@ function renderList() {
   }).join('');
 }
 
-function selectGem(id) {
+async function selectGem(id) {
   const gem = gems.find(g => g.id === id);
   if (!gem) return;
   document.querySelectorAll('.gem-card').forEach(c => c.classList.remove('selected'));
   const card = document.getElementById('card-' + id);
   if (card) card.classList.add('selected');
   if (gem.lat && gem.lng) map.flyTo([gem.lat, gem.lng], 16, { duration: 0.8 });
-  showDetail(gem);
+  await showDetail(gem);
 }
 
 // ── Detail ────────────────────────────────────────────────────────────────────
