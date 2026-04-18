@@ -1044,7 +1044,7 @@ function renderList() {
   }
   list.innerHTML = gems.map(g => {
     const thumb = g.photo_url
-      ? `<img class="gem-photo-thumb" src="${g.photo_url}" alt="" />`
+      ? `<img class="gem-photo-thumb" data-path="${g.photo_url}" src="" alt="" />`
       : `<div class="gem-emoji">${g.emoji || '🌿'}</div>`;
     return `<div class="gem-card" id="card-${g.id}" onclick="selectGem('${g.id}')">
       ${thumb}
@@ -1055,6 +1055,18 @@ function renderList() {
       <span class="gem-chevron">›</span>
     </div>`;
   }).join('');
+  resolveThumbs();
+}
+
+async function resolveThumbs() {
+  const imgs = document.querySelectorAll('.gem-photo-thumb[data-path]');
+  for (const img of imgs) {
+    const p = img.dataset.path;
+    if (!p) continue;
+    if (p.startsWith('http')) { img.src = p; continue; }
+    const { data } = await db.storage.from('gem-photos').createSignedUrl(p, 3600);
+    if (data?.signedUrl) img.src = data.signedUrl;
+  }
 }
 
 async function selectGem(id) {
@@ -1108,11 +1120,18 @@ async function showDetail(gem) {
     .select('photo_url')
     .eq('gem_id', gem.id)
     .order('sort_order');
-  const urls = photos && photos.length
+  const paths = photos && photos.length
     ? photos.map(p => p.photo_url)
     : (gem.photo_url ? [gem.photo_url] : []);
 
-  const photoEl = showCarousel(urls, gem.name, gem.emoji);
+  const urls = await Promise.all(paths.map(async p => {
+    if (!p) return null;
+    if (p.startsWith('http')) return p;
+    const { data } = await db.storage.from('gem-photos').createSignedUrl(p, 3600);
+    return data?.signedUrl || null;
+  }));
+
+  const photoEl = showCarousel(urls.filter(Boolean), gem.name, gem.emoji);
 
   document.getElementById('detailModal').innerHTML = `
     ${photoEl}
@@ -1259,14 +1278,14 @@ async function saveGem() {
       const path = `${currentUser.id}/${data.id}_${i}_${Date.now()}.${ext}`;
       const { error: upErr } = await db.storage.from('gem-photos').upload(path, file);
       if (upErr) continue;
-      const { data: urlData } = db.storage.from('gem-photos').getPublicUrl(path);
-      urls.push(urlData.publicUrl);
+      urls.push(path);
     }
     if (urls.length) {
-      data.photo_url = urls[0];
+      const { data: signed } = await db.storage.from('gem-photos').createSignedUrl(urls[0], 31536000);
+      data.photo_url = signed?.signedUrl || null;
       await db.from('gems').update({ photo_url: urls[0] }).eq('id', data.id);
-      await Promise.all(urls.map((url, i) =>
-        db.from('gem_photos').insert({ gem_id: data.id, photo_url: url, sort_order: i })
+      await Promise.all(urls.map((p, i) =>
+        db.from('gem_photos').insert({ gem_id: data.id, photo_url: p, sort_order: i })
       ));
     }
   }
