@@ -1,7 +1,28 @@
 {
   "permissions": {
     "allow": [
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(node -e \"const f = require\\('fs'\\).readFileSync\\('C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd/.claude/settings.local.json','utf8'\\); const j = JSON.parse\\(f\\); console.log\\(j.hooks.SessionStart[0].hooks[0].command\\);\")",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" log --oneline -5)",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" diff --stat)",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" status --short)",
+      "Bash(git -C \"C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd\" add index.html .claude/settings.local.json)",
+      "Bash(git -C C:/Users/admin/Documents/code/hidden-gems/.claude/worktrees/silly-edison-ff97cd commit -m ' *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"IMPORTANT: Immediately start the dev server in the preview panel using preview_start with command \\\"npm start\\\" and port 8000. Do this before anything else.\"}}'",
+            "statusMessage": "Starting dev preview..."
+          }
+        ]
+      }
     ]
   }
 }
