@@ -1467,5 +1467,18 @@ document.getElementById('detailOverlay').addEventListener('click', e => { if (e.
 
 initMap();
 </script>
+<script>
+if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+  let etag = '';
+  setInterval(async () => {
+    try {
+      const r = await fetch(location.href, { method: 'HEAD', cache: 'no-store' });
+      const tag = r.headers.get('etag') || r.headers.get('last-modified');
+      if (etag && tag && tag !== etag) location.reload();
+      if (tag) etag = tag;
+    } catch (_) {}
+  }, 1000);
+}
+</script>
 </body>
 </html>
