@@ -82,10 +82,27 @@
   .add-fab:active { transform: scale(0.92); }
 
   /* Map */
-  #map {
+  .map-wrap {
     flex: 1;
+    position: relative;
+    overflow: hidden;
     z-index: 1;
   }
+  #map {
+    position: absolute;
+    inset: 0;
+  }
+
+  .map-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    pointer-events: none;
+    display: none;
+  }
+  .map-crosshair.active { display: block; }
 
   /* Bottom sheet list */
   .sheet {
@@ -357,21 +374,171 @@
     transition: opacity 0.2s;
   }
   .toast.show { opacity: 1; }
+
+  /* Auth screen */
+  .auth-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--cream);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+  .auth-screen.hidden { display: none; }
+  .auth-logo { font-family: var(--serif); font-size: 28px; color: var(--green); margin-bottom: 6px; }
+  .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+  .auth-box {
+    width: 100%;
+    max-width: 360px;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  }
+  .auth-box h2 { font-family: var(--serif); font-size: 20px; margin-bottom: 4px; }
+  .auth-box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .auth-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: var(--sans);
+    background: var(--cream);
+    color: var(--ink);
+    outline: none;
+    margin-bottom: 12px;
+    -webkit-appearance: none;
+  }
+  .auth-input:focus { border-color: var(--green-light); }
+  .auth-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: var(--sans);
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .auth-btn:disabled { opacity: 0.5; }
+  .auth-sent { text-align: center; padding: 8px 0; }
+  .auth-sent .big { font-size: 36px; margin-bottom: 8px; }
+  .auth-sent p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  .logout-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: var(--sans);
+    cursor: pointer;
+  }
+
+  /* Pick bar */
+  .pick-bar {
+    background: var(--card);
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: 0 -2px 20px rgba(0,0,0,0.1);
+    padding: 14px 16px 16px;
+    flex-shrink: 0;
+    display: none;
+    z-index: 5;
+  }
+  .pick-bar.active { display: block; }
+  .pick-hint { font-size: 12px; color: var(--muted); text-align: center; margin-bottom: 6px; }
+  .pick-coords-display {
+    font-size: 13px;
+    color: var(--ink);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .pick-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+  .pick-cancel {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: none;
+    font-size: 14px;
+    font-family: var(--sans);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .pick-confirm {
+    padding: 12px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: var(--sans);
+    font-weight: 500;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
 
+<!-- Auth screen -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-logo">Hidden Gems</div>
+  <div class="auth-sub">Your secret places</div>
+  <div class="auth-box" id="authBox">
+    <h2>Sign in</h2>
+    <p>Enter your email and we'll send you a magic link.</p>
+    <input class="auth-input" type="email" id="authEmail" placeholder="you@example.com" />
+    <button class="auth-btn" id="authBtn" onclick="sendMagicLink()">Send magic link</button>
+  </div>
+</div>
+
 <header>
   <div>
     <h1>Hidden Gems</h1>
-    <p>Your secret places</p>
+    <p id="userEmail" style="font-size:11px;opacity:0.65;margin-top:1px;font-weight:300;"></p>
   </div>
-  <button class="add-fab" onclick="openAdd()" title="Add gem">+</button>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="logout-btn" onclick="signOut()">Sign out</button>
+    <button class="add-fab" onclick="openAdd()" title="Add gem">+</button>
+  </div>
 </header>
 
-<div id="map"></div>
+<div class="map-wrap">
+  <div id="map">
+    <div class="map-crosshair" id="mapCrosshair">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="22" y1="2" x2="22" y2="18" stroke="#2d6a4f" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="22" y1="26" x2="22" y2="42" stroke="#2d6a4f" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="2" y1="22" x2="18" y2="22" stroke="#2d6a4f" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="26" y1="22" x2="42" y2="22" stroke="#2d6a4f" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="22" cy="22" r="4" fill="#2d6a4f"/>
+        <circle cx="22" cy="22" r="7" stroke="#2d6a4f" stroke-width="1.5" fill="none" opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+</div>
 
-<div class="sheet">
+<!-- Pick bar (step 1: pan map to location) -->
+<div class="pick-bar" id="pickBar">
+  <div class="pick-hint">📍 Pan the map to your gem</div>
+  <div class="pick-coords-display" id="pickCoordsDisplay">—</div>
+  <div class="pick-actions">
+    <button class="pick-cancel" onclick="cancelPick()">Cancel</button>
+    <button class="pick-confirm" onclick="confirmPick()">Set location →</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title" id="sheetTitle">Your gems</div>
   <div class="gem-list" id="gemList">
@@ -395,17 +562,8 @@
         <label>NOTE</label>
         <textarea id="inNote" placeholder="What makes it special?"></textarea>
       </div>
-      <button class="locate-btn" onclick="locateMe()">📍 Use my current location</button>
-      <div class="coord-row">
-        <div class="field">
-          <label>LATITUDE</label>
-          <input type="number" id="inLat" placeholder="55.6761" step="0.0001" />
-        </div>
-        <div class="field">
-          <label>LONGITUDE</label>
-          <input type="number" id="inLng" placeholder="12.5683" step="0.0001" />
-        </div>
-      </div>
+      <input type="hidden" id="inLat" />
+      <input type="hidden" id="inLng" />
       <img id="photoPreview" alt="preview" />
       <div class="field">
         <label>PHOTO (optional)</label>
@@ -428,7 +586,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://ptnzegjtpvwlzuvmodac.supabase.com';
+const SUPABASE_URL = 'https://ptnzegjtpvwlzuvmodac.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bnplZ2p0cHZ3bHp1dm1vZGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMjQ1MjAsImV4cCI6MjA5MDgwMDUyMH0.5febQSFyDSz6R0p-5ctruat6QnJ2aeKNWnnDAFytwfk';
 
 const { createClient } = supabase;
@@ -439,6 +597,59 @@ let gems = [];
 let markers = {};
 let selectedFile = null;
 let map;
+let currentUser = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+function showAuthScreen() {
+  document.getElementById('authScreen').classList.remove('hidden');
+}
+
+function hideAuthScreen() {
+  document.getElementById('authScreen').classList.add('hidden');
+}
+
+async function sendMagicLink() {
+  const email = document.getElementById('authEmail').value.trim();
+  if (!email) { return; }
+  const btn = document.getElementById('authBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = 'Send magic link';
+    showToast('Error: ' + error.message);
+    return;
+  }
+  document.getElementById('authBox').innerHTML = `
+    <div class="auth-sent">
+      <div class="big">📬</div>
+      <p>Check your inbox!<br>Click the link in the email to sign in.</p>
+    </div>`;
+}
+
+async function signOut() {
+  await db.auth.signOut();
+}
+
+db.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user ?? null;
+  if (currentUser) {
+    hideAuthScreen();
+    document.getElementById('userEmail').textContent = currentUser.email;
+    loadGems();
+  } else {
+    showAuthScreen();
+    // Clear map markers and list
+    Object.values(markers).forEach(m => m.remove());
+    markers = {};
+    gems = [];
+    renderList();
+  }
+});
+
+// ── Map ───────────────────────────────────────────────────────────────────────
 
 function initMap() {
   map = L.map('map', { zoomControl: false }).setView([55.676, 12.568], 13);
@@ -466,6 +677,8 @@ function addMarker(gem) {
   m.on('click', () => showDetail(gem));
   markers[gem.id] = m;
 }
+
+// ── List ──────────────────────────────────────────────────────────────────────
 
 function renderList() {
   const list = document.getElementById('gemList');
@@ -499,6 +712,8 @@ function selectGem(id) {
   showDetail(gem);
 }
 
+// ── Detail ────────────────────────────────────────────────────────────────────
+
 function showDetail(gem) {
   const photoEl = gem.photo_url
     ? `<img class="detail-photo" src="${gem.photo_url}" alt="${gem.name}" />`
@@ -524,9 +739,43 @@ function showDetail(gem) {
 
 function closeDetail() { document.getElementById('detailOverlay').classList.remove('open'); }
 
-function openAdd() { document.getElementById('addOverlay').classList.add('open'); }
+// ── Add / Save ────────────────────────────────────────────────────────────────
+
+function updateCoordsFromMap() {
+  const c = map.getCenter();
+  document.getElementById('inLat').value = c.lat.toFixed(6);
+  document.getElementById('inLng').value = c.lng.toFixed(6);
+  document.getElementById('pickCoordsDisplay').textContent =
+    c.lat.toFixed(5) + ', ' + c.lng.toFixed(5);
+}
+
+// Step 1: show crosshair + pick bar, map is fully interactive
+function openAdd() {
+  document.getElementById('sheet').style.display = 'none';
+  document.getElementById('pickBar').classList.add('active');
+  document.getElementById('mapCrosshair').classList.add('active');
+  updateCoordsFromMap();
+  map.on('move', updateCoordsFromMap);
+}
+
+function cancelPick() {
+  document.getElementById('pickBar').classList.remove('active');
+  document.getElementById('sheet').style.display = '';
+  document.getElementById('mapCrosshair').classList.remove('active');
+  map.off('move', updateCoordsFromMap);
+}
+
+// Step 2: location confirmed, open the details form
+function confirmPick() {
+  document.getElementById('pickBar').classList.remove('active');
+  document.getElementById('mapCrosshair').classList.remove('active');
+  map.off('move', updateCoordsFromMap);
+  document.getElementById('addOverlay').classList.add('open');
+}
+
 function closeAdd() {
   document.getElementById('addOverlay').classList.remove('open');
+  document.getElementById('sheet').style.display = '';
   document.getElementById('inName').value = '';
   document.getElementById('inNote').value = '';
   document.getElementById('inLat').value = '';
@@ -548,15 +797,6 @@ function previewPhoto(input) {
   reader.readAsDataURL(selectedFile);
 }
 
-function locateMe() {
-  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
-  showToast('Getting location...');
-  navigator.geolocation.getCurrentPosition(pos => {
-    document.getElementById('inLat').value = pos.coords.latitude.toFixed(6);
-    document.getElementById('inLng').value = pos.coords.longitude.toFixed(6);
-    showToast('Location set!');
-  }, () => showToast('Could not get location'));
-}
 
 async function saveGem() {
   const name = document.getElementById('inName').value.trim();
@@ -572,7 +812,7 @@ async function saveGem() {
   let photo_url = null;
   if (selectedFile) {
     const ext = selectedFile.name.split('.').pop();
-    const path = `gems/${Date.now()}.${ext}`;
+    const path = `${currentUser.id}/${Date.now()}.${ext}`;
     const { error: upErr } = await db.storage.from('gem-photos').upload(path, selectedFile);
     if (!upErr) {
       const { data } = db.storage.from('gem-photos').getPublicUrl(path);
@@ -585,7 +825,8 @@ async function saveGem() {
     name, note,
     lat: isNaN(lat) ? null : lat,
     lng: isNaN(lng) ? null : lng,
-    photo_url, emoji
+    photo_url, emoji,
+    user_id: currentUser.id
   }]).select().single();
 
   btn.disabled = false;
@@ -609,6 +850,8 @@ async function deleteGem(id) {
   closeDetail();
   showToast('Gem deleted');
 }
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -635,7 +878,6 @@ document.getElementById('addOverlay').addEventListener('click', e => { if (e.tar
 document.getElementById('detailOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeDetail(); });
 
 initMap();
-loadGems();
 </script>
 </body>
 </html>
