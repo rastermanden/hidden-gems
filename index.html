@@ -501,6 +501,22 @@
     border-top: 1px solid var(--border);
   }
 
+  .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+
+  .edit-btn {
+    width: 100%;
+    padding: 13px;
+    background: none;
+    color: var(--green-mid);
+    border: 1.5px solid rgba(45,106,79,0.25);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .edit-btn:active { background: var(--green-ghost); border-color: rgba(45,106,79,0.45); }
+
   .delete-btn {
     width: 100%;
     padding: 13px;
@@ -511,7 +527,6 @@
     font-size: 14px;
     font-family: var(--sans);
     cursor: pointer;
-    margin-top: 14px;
     transition: background 0.15s, border-color 0.15s;
   }
   .delete-btn:active { background: #fef2f2; border-color: rgba(220,38,38,0.35); }
@@ -868,7 +883,7 @@
   <div class="modal">
     <div class="modal-drag-bar"></div>
     <div class="modal-header">
-      <span class="modal-title">New gem</span>
+      <span class="modal-title" id="addModalTitle">New gem</span>
       <button class="modal-close" onclick="closeAdd()">×</button>
     </div>
     <div class="modal-body">
@@ -898,7 +913,7 @@
           <input type="file" accept="image/*" multiple onchange="previewPhoto(this)" id="photoInput" />
         </div>
       </div>
-      <button class="save-btn" id="saveBtn" onclick="saveGem()">Save gem</button>
+      <button class="save-btn" id="saveBtn" onclick="handleSave()">Save gem</button>
     </div>
   </div>
 </div>
@@ -936,6 +951,9 @@ let selectedFiles = [];
 let selectedEmoji = '🌿';
 let map;
 let currentUser = null;
+let editingGemId = null;
+let existingPhotos = [];
+let photosToDelete = [];
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -1148,7 +1166,10 @@ async function showDetail(gem) {
       </div>
       <div class="detail-note">${gem.note || '<em style="color:var(--muted-light)">No notes added</em>'}</div>
       ${date ? `<div class="detail-date">Added ${date}</div>` : ''}
-      <button class="delete-btn" onclick="deleteGem('${gem.id}')">Delete this gem</button>
+      <div class="detail-actions">
+        <button class="edit-btn" onclick="openEdit('${gem.id}')">Edit gem</button>
+        <button class="delete-btn" onclick="deleteGem('${gem.id}')">Delete</button>
+      </div>
     </div>`;
   document.getElementById('detailOverlay').classList.add('open');
 }
@@ -1199,12 +1220,17 @@ function closeAdd() {
   document.getElementById('inLng').value = '';
   document.getElementById('photoPreviews').innerHTML = '';
   document.getElementById('photoInput').value = '';
+  document.getElementById('addModalTitle').textContent = 'New gem';
+  document.getElementById('saveBtn').textContent = 'Save gem';
   selectedFiles = [];
   selectedEmoji = '🌿';
+  editingGemId = null;
+  existingPhotos = [];
+  photosToDelete = [];
 }
 
-function initEmojiPicker() {
-  selectedEmoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+function initEmojiPicker(preset) {
+  selectedEmoji = preset || EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
   const grid = document.getElementById('emojiGrid');
   grid.innerHTML = EMOJIS.map((e, i) =>
     `<button class="emoji-opt${e === selectedEmoji ? ' active' : ''}" data-i="${i}" onclick="selectEmoji(${i})">${e}</button>`
@@ -1297,6 +1323,110 @@ async function saveGem() {
   closeAdd();
   showToast('Gem saved!');
   if (data.lat && data.lng) map.flyTo([data.lat, data.lng], 16);
+}
+
+function handleSave() {
+  if (editingGemId) updateGem();
+  else saveGem();
+}
+
+async function openEdit(gemId) {
+  const gem = gems.find(g => g.id === gemId);
+  if (!gem) return;
+
+  editingGemId = gemId;
+  existingPhotos = [];
+  photosToDelete = [];
+  selectedFiles = [];
+
+  document.getElementById('inName').value = gem.name || '';
+  document.getElementById('inNote').value = gem.note || '';
+  document.getElementById('inLat').value = gem.lat || '';
+  document.getElementById('inLng').value = gem.lng || '';
+  initEmojiPicker(gem.emoji || '🌿');
+
+  document.getElementById('addModalTitle').textContent = 'Edit gem';
+  document.getElementById('saveBtn').textContent = 'Update gem';
+
+  const container = document.getElementById('photoPreviews');
+  container.innerHTML = '';
+
+  const { data: photos } = await db.from('gem_photos')
+    .select('*').eq('gem_id', gemId).order('sort_order');
+  const photosToShow = photos && photos.length
+    ? photos
+    : (gem.photo_url ? [{ id: null, photo_url: gem.photo_url }] : []);
+
+  for (const photo of photosToShow) {
+    const signedUrl = await toSignedUrl(photo.photo_url);
+    if (!signedUrl) continue;
+    existingPhotos.push({ ...photo, signedUrl });
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block';
+    const img = document.createElement('img');
+    img.src = signedUrl;
+    const btn = document.createElement('button');
+    btn.textContent = '×';
+    btn.style.cssText = 'position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:12px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center';
+    const photoUrl = photo.photo_url;
+    const photoId = photo.id;
+    btn.onclick = () => {
+      photosToDelete.push(photoUrl);
+      existingPhotos = existingPhotos.filter(p => p.photo_url !== photoUrl);
+      wrap.remove();
+    };
+    wrap.appendChild(img); wrap.appendChild(btn);
+    container.appendChild(wrap);
+  }
+
+  closeDetail();
+  document.getElementById('addOverlay').classList.add('open');
+}
+
+async function updateGem() {
+  const name = document.getElementById('inName').value.trim();
+  const note = document.getElementById('inNote').value.trim();
+  if (!name) { showToast('Please enter a name'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  const gemId = editingGemId;
+  const emoji = selectedEmoji;
+
+  const { error } = await db.from('gems').update({ name, note, emoji }).eq('id', gemId);
+  if (error) { btn.disabled = false; btn.textContent = 'Update gem'; showToast('Error: ' + error.message); return; }
+
+  for (const path of photosToDelete) {
+    const marker = '/object/public/gem-photos/';
+    const storagePath = path.includes(marker) ? path.split(marker)[1] : (path.startsWith('http') ? null : path);
+    if (storagePath) await db.storage.from('gem-photos').remove([storagePath]);
+    await db.from('gem_photos').delete().eq('photo_url', path).eq('gem_id', gemId);
+  }
+
+  const filesToUpload = selectedFiles.filter(Boolean);
+  for (let i = 0; i < filesToUpload.length; i++) {
+    const file = filesToUpload[i];
+    const ext = file.name.split('.').pop();
+    const path = `${currentUser.id}/${gemId}_${existingPhotos.length + i}_${Date.now()}.${ext}`;
+    const { error: upErr } = await db.storage.from('gem-photos').upload(path, file);
+    if (!upErr) await db.from('gem_photos').insert({ gem_id: gemId, photo_url: path, sort_order: existingPhotos.length + i });
+  }
+
+  const { data: updated } = await db.from('gem_photos').select('photo_url').eq('gem_id', gemId).order('sort_order').limit(1);
+  const newPhotoUrl = updated && updated.length ? updated[0].photo_url : null;
+  await db.from('gems').update({ photo_url: newPhotoUrl }).eq('id', gemId);
+
+  const idx = gems.findIndex(g => g.id === gemId);
+  if (idx !== -1) {
+    gems[idx] = { ...gems[idx], name, note, emoji, photo_url: newPhotoUrl };
+    addMarker(gems[idx]);
+  }
+
+  btn.disabled = false;
+  renderList();
+  closeAdd();
+  showToast('Gem updated!');
 }
 
 async function deleteGem(id) {
