@@ -357,15 +357,80 @@
   .photo-zone .icon { font-size: 26px; display: block; margin-bottom: 5px; }
   .photo-zone .upload-label { font-weight: 500; color: var(--green-mid); }
 
-  #photoPreview {
-    width: 100%;
-    border-radius: var(--radius-sm);
-    max-height: 170px;
+  #photoPreview { display: none; }
+
+  .photo-previews {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .photo-previews img {
+    width: 72px;
+    height: 72px;
     object-fit: cover;
-    display: none;
-    margin-bottom: 16px;
+    border-radius: 8px;
     box-shadow: var(--shadow-sm);
   }
+
+  /* Carousel */
+  .carousel {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: #111;
+  }
+  .carousel-slides {
+    display: flex;
+    height: 100%;
+    transition: transform 0.3s ease;
+  }
+  .carousel-slides img {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    line-height: 1;
+  }
+  .carousel-btn.prev { left: 10px; }
+  .carousel-btn.next { right: 10px; }
+  .carousel-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+  }
+  .carousel-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .carousel-dots span.active { background: #fff; }
 
   .save-btn {
     width: 100%;
@@ -791,12 +856,13 @@
       <input type="hidden" id="inLat" />
       <input type="hidden" id="inLng" />
       <img id="photoPreview" alt="preview" />
+      <div id="photoPreviews" class="photo-previews"></div>
       <div class="field">
-        <label>Photo <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted-light)">— optional</span></label>
+        <label>Photos <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted-light)">— optional, multiple allowed</span></label>
         <div class="photo-zone">
           <span class="icon">📷</span>
-          <span class="upload-label">Tap to add a photo</span>
-          <input type="file" accept="image/*" onchange="previewPhoto(this)" id="photoInput" />
+          <span class="upload-label">Tap to add photos</span>
+          <input type="file" accept="image/*" multiple onchange="previewPhoto(this)" id="photoInput" />
         </div>
       </div>
       <button class="save-btn" id="saveBtn" onclick="saveGem()">Save gem</button>
@@ -823,7 +889,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
 const EMOJIS = ['🌿','🏞️','🌊','🏛️','🌸','🍃','🌄','🗿','🌺','🦋','🌙','⛰️'];
 let gems = [];
 let markers = {};
-let selectedFile = null;
+let selectedFiles = [];
 let map;
 let currentUser = null;
 
@@ -959,14 +1025,51 @@ function selectGem(id) {
 
 // ── Detail ────────────────────────────────────────────────────────────────────
 
-function showDetail(gem) {
-  const photoEl = gem.photo_url
-    ? `<img class="detail-photo" src="${gem.photo_url}" alt="${gem.name}" />`
-    : `<div class="detail-emoji-header">${gem.emoji || '🌿'}</div>`;
+let carouselIndex = 0;
+let carouselPhotos = [];
+
+function showCarousel(photos, name, emoji) {
+  carouselPhotos = photos;
+  carouselIndex = 0;
+  if (!photos.length) {
+    return `<div class="detail-emoji-header">${emoji || '🌿'}</div>`;
+  }
+  const slides = photos.map(u => `<img src="${u}" alt="${name}" />`).join('');
+  const dots = photos.length > 1
+    ? `<div class="carousel-dots">${photos.map((_,i) => `<span class="${i===0?'active':''}" onclick="goCarousel(${i})"></span>`).join('')}</div>`
+    : '';
+  const arrows = photos.length > 1
+    ? `<button class="carousel-btn prev" onclick="goCarousel(carouselIndex-1)">&#8249;</button>
+       <button class="carousel-btn next" onclick="goCarousel(carouselIndex+1)">&#8250;</button>`
+    : '';
+  return `<div class="carousel">${arrows}<div class="carousel-slides" id="carouselSlides">${slides}</div>${dots}</div>`;
+}
+
+function goCarousel(i) {
+  if (!carouselPhotos.length) return;
+  carouselIndex = ((i % carouselPhotos.length) + carouselPhotos.length) % carouselPhotos.length;
+  const slides = document.getElementById('carouselSlides');
+  if (slides) slides.style.transform = `translateX(-${carouselIndex * 100}%)`;
+  document.querySelectorAll('.carousel-dots span').forEach((d, idx) =>
+    d.classList.toggle('active', idx === carouselIndex));
+}
+
+async function showDetail(gem) {
   const coords = gem.lat && gem.lng
     ? `${parseFloat(gem.lat).toFixed(5)}, ${parseFloat(gem.lng).toFixed(5)}`
     : 'No coordinates';
   const date = gem.created_at ? new Date(gem.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : '';
+
+  const { data: photos } = await db.from('gem_photos')
+    .select('photo_url')
+    .eq('gem_id', gem.id)
+    .order('sort_order');
+  const urls = photos && photos.length
+    ? photos.map(p => p.photo_url)
+    : (gem.photo_url ? [gem.photo_url] : []);
+
+  const photoEl = showCarousel(urls, gem.name, gem.emoji);
+
   document.getElementById('detailModal').innerHTML = `
     ${photoEl}
     <div class="modal-drag-bar"></div>
@@ -1029,21 +1132,36 @@ function closeAdd() {
   document.getElementById('inNote').value = '';
   document.getElementById('inLat').value = '';
   document.getElementById('inLng').value = '';
-  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('photoPreviews').innerHTML = '';
   document.getElementById('photoInput').value = '';
-  selectedFile = null;
+  selectedFiles = [];
 }
 
 function previewPhoto(input) {
-  if (!input.files || !input.files[0]) return;
-  selectedFile = input.files[0];
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = document.getElementById('photoPreview');
-    img.src = e.target.result;
-    img.style.display = 'block';
-  };
-  reader.readAsDataURL(selectedFile);
+  if (!input.files || !input.files.length) return;
+  const newFiles = Array.from(input.files);
+  const container = document.getElementById('photoPreviews');
+  newFiles.forEach(file => {
+    const idx = selectedFiles.length;
+    selectedFiles.push(file);
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;display:inline-block';
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      const btn = document.createElement('button');
+      btn.textContent = '×';
+      btn.dataset.idx = idx;
+      btn.style.cssText = 'position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:12px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center';
+      btn.onclick = () => { selectedFiles[parseInt(btn.dataset.idx)] = null; wrap.remove(); };
+      wrap.appendChild(img);
+      wrap.appendChild(btn);
+      container.appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
 }
 
 
@@ -1058,23 +1176,12 @@ async function saveGem() {
   btn.disabled = true;
   btn.textContent = 'Saving...';
 
-  let photo_url = null;
-  if (selectedFile) {
-    const ext = selectedFile.name.split('.').pop();
-    const path = `${currentUser.id}/${Date.now()}.${ext}`;
-    const { error: upErr } = await db.storage.from('gem-photos').upload(path, selectedFile);
-    if (!upErr) {
-      const { data } = db.storage.from('gem-photos').getPublicUrl(path);
-      photo_url = data.publicUrl;
-    }
-  }
-
   const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
   const { data, error } = await db.from('gems').insert([{
     name, note,
     lat: isNaN(lat) ? null : lat,
     lng: isNaN(lng) ? null : lng,
-    photo_url, emoji,
+    photo_url: null, emoji,
     user_id: currentUser.id
   }]).select().single();
 
@@ -1082,6 +1189,21 @@ async function saveGem() {
   btn.textContent = 'Save gem';
 
   if (error) { showToast('Error: ' + error.message); return; }
+
+  const filesToUpload = selectedFiles.filter(Boolean);
+  if (filesToUpload.length) {
+    const uploads = filesToUpload.map(async (file, i) => {
+      const ext = file.name.split('.').pop();
+      const path = `${currentUser.id}/${data.id}_${i}_${Date.now()}.${ext}`;
+      const { error: upErr } = await db.storage.from('gem-photos').upload(path, file);
+      if (upErr) return;
+      const { data: urlData } = db.storage.from('gem-photos').getPublicUrl(path);
+      await db.from('gem_photos').insert({ gem_id: data.id, photo_url: urlData.publicUrl, sort_order: i });
+      if (i === 0) data.photo_url = urlData.publicUrl;
+    });
+    await Promise.all(uploads);
+  }
+
   gems.unshift(data);
   addMarker(data);
   renderList();
