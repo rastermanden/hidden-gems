@@ -1061,11 +1061,8 @@ function renderList() {
 async function resolveThumbs() {
   const imgs = document.querySelectorAll('.gem-photo-thumb[data-path]');
   for (const img of imgs) {
-    const p = img.dataset.path;
-    if (!p) continue;
-    if (p.startsWith('http')) { img.src = p; continue; }
-    const { data } = await db.storage.from('gem-photos').createSignedUrl(p, 3600);
-    if (data?.signedUrl) img.src = data.signedUrl;
+    const url = await toSignedUrl(img.dataset.path);
+    if (url) img.src = url;
   }
 }
 
@@ -1110,6 +1107,15 @@ function goCarousel(i) {
     d.classList.toggle('active', idx === carouselIndex));
 }
 
+async function toSignedUrl(p) {
+  if (!p) return null;
+  const marker = '/object/public/gem-photos/';
+  const path = p.includes(marker) ? p.split(marker)[1] : (p.startsWith('http') ? null : p);
+  if (!path) return p;
+  const { data } = await db.storage.from('gem-photos').createSignedUrl(path, 3600);
+  return data?.signedUrl || null;
+}
+
 async function showDetail(gem) {
   const coords = gem.lat && gem.lng
     ? `${parseFloat(gem.lat).toFixed(5)}, ${parseFloat(gem.lng).toFixed(5)}`
@@ -1124,12 +1130,7 @@ async function showDetail(gem) {
     ? photos.map(p => p.photo_url)
     : (gem.photo_url ? [gem.photo_url] : []);
 
-  const urls = await Promise.all(paths.map(async p => {
-    if (!p) return null;
-    if (p.startsWith('http')) return p;
-    const { data } = await db.storage.from('gem-photos').createSignedUrl(p, 3600);
-    return data?.signedUrl || null;
-  }));
+  const urls = await Promise.all(paths.map(toSignedUrl));
 
   const photoEl = showCarousel(urls.filter(Boolean), gem.name, gem.emoji);
 
