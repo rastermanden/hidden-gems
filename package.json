@@ -2,7 +2,7 @@
   "name": "hidden-gems",
   "version": "1.0.0",
   "scripts": {
-    "start": "vite --port 8000 --host",
+    "start": "vite dev --port 8000 --host",
     "build": "vite build",
     "preview": "vite preview"
   },
