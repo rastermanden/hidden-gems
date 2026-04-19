@@ -1,0 +1,22 @@
+{
+  "name": "Hidden Gems",
+  "short_name": "Hidden Gems",
+  "description": "Your secret places, beautifully kept",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#141413",
+  "theme_color": "#141413",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23141413'/%3E%3Cpolygon points='96,24 152,56 152,120 96,152 40,120 40,56' fill='rgba(255,255,255,0.08)' stroke='rgba(255,255,255,0.3)' stroke-width='3'/%3E%3Cpolygon points='96,24 152,56 96,88' fill='rgba(255,255,255,0.22)'/%3E%3Cpolygon points='96,24 40,56 96,88' fill='rgba(255,255,255,0.13)'/%3E%3Cpolygon points='40,56 96,88 40,120' fill='rgba(255,255,255,0.09)'/%3E%3Cpolygon points='152,56 96,88 152,120' fill='rgba(255,255,255,0.17)'/%3E%3Cpolygon points='96,88 40,120 96,152' fill='rgba(255,255,255,0.07)'/%3E%3Cpolygon points='96,88 152,120 96,152' fill='rgba(255,255,255,0.13)'/%3E%3Ccircle cx='96' cy='88' r='18' fill='rgba(201,100,66,0.5)'/%3E%3Ccircle cx='96' cy='88' r='10' fill='%23c96442'/%3E%3Ccircle cx='96' cy='88' r='4' fill='rgba(255,255,255,0.9)'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%23141413'/%3E%3Cpolygon points='256,64 408,152 408,320 256,408 104,320 104,152' fill='rgba(255,255,255,0.08)' stroke='rgba(255,255,255,0.3)' stroke-width='6'/%3E%3Cpolygon points='256,64 408,152 256,234' fill='rgba(255,255,255,0.22)'/%3E%3Cpolygon points='256,64 104,152 256,234' fill='rgba(255,255,255,0.13)'/%3E%3Cpolygon points='104,152 256,234 104,320' fill='rgba(255,255,255,0.09)'/%3E%3Cpolygon points='408,152 256,234 408,320' fill='rgba(255,255,255,0.17)'/%3E%3Cpolygon points='256,234 104,320 256,408' fill='rgba(255,255,255,0.07)'/%3E%3Cpolygon points='256,234 408,320 256,408' fill='rgba(255,255,255,0.13)'/%3E%3Ccircle cx='256' cy='234' r='48' fill='rgba(201,100,66,0.5)'/%3E%3Ccircle cx='256' cy='234' r='28' fill='%23c96442'/%3E%3Ccircle cx='256' cy='234' r='12' fill='rgba(255,255,255,0.9)'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

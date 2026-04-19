@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Hidden Gems" />
+<meta name="theme-color" content="#141413" />
+<link rel="manifest" href="manifest.json" />
 <title>Hidden Gems</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
@@ -808,6 +814,227 @@
   }
   .logout-btn:active { background: rgba(255,255,255,0.1); }
 
+  /* Save As / Add to Home Screen dialog */
+  .saveas-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(14,14,12,0.62);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .saveas-overlay.open { opacity: 1; pointer-events: all; }
+
+  .saveas-modal {
+    background: var(--ivory);
+    border-radius: 26px;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 28px 90px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.4) inset;
+    transform: scale(0.91) translateY(16px);
+    transition: transform 0.32s cubic-bezier(0.34,1.36,0.64,1), opacity 0.24s;
+    overflow: hidden;
+    opacity: 0;
+  }
+  .saveas-overlay.open .saveas-modal {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
+  /* Dark hero header */
+  .saveas-header-art {
+    background: var(--ink);
+    padding: 30px 24px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .saveas-header-art::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 25% 30%, rgba(201,100,66,0.22) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 75%, rgba(201,100,66,0.13) 0%, transparent 45%);
+  }
+  .saveas-header-art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .saveas-icon-wrap {
+    position: relative;
+    z-index: 1;
+    width: 84px;
+    height: 84px;
+    margin-bottom: 13px;
+    filter: drop-shadow(0 8px 24px rgba(201,100,66,0.55));
+  }
+  .saveas-art-title {
+    position: relative;
+    z-index: 1;
+    font-family: var(--serif);
+    font-size: 20px;
+    color: white;
+    letter-spacing: 0.01em;
+    text-align: center;
+  }
+  .saveas-art-sub {
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    color: rgba(255,255,255,0.52);
+    margin-top: 3px;
+    font-weight: 300;
+    font-style: italic;
+    font-family: var(--serif);
+    text-align: center;
+  }
+
+  /* Platform tabs */
+  .saveas-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 16px 18px 0;
+  }
+  .saveas-tab {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border-warm);
+    background: var(--cream);
+    font-size: 12px;
+    font-family: var(--sans);
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .saveas-tab.active {
+    background: var(--terracotta);
+    border-color: var(--terracotta-dark);
+    color: white;
+    box-shadow: 0 2px 8px rgba(201,100,66,0.3);
+  }
+  .saveas-tab:active:not(.active) { background: var(--warm-sand); }
+
+  /* Steps */
+  .saveas-steps {
+    padding: 14px 18px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .saveas-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .saveas-step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    box-shadow: 0 2px 6px rgba(201,100,66,0.3);
+  }
+  .saveas-step-body {}
+  .saveas-step-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 1px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .saveas-step-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .saveas-step-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--warm-sand);
+    border: 1px solid var(--border-warm);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    vertical-align: middle;
+  }
+
+  /* Android install button */
+  .saveas-install-btn {
+    margin: 6px 18px 2px;
+    width: calc(100% - 36px);
+    padding: 13px;
+    background: var(--terracotta);
+    color: var(--ivory);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: var(--sans);
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.12s;
+    box-shadow: 0 0 0 1px var(--terracotta-dark), 0 4px 12px rgba(201,100,66,0.3);
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+  .saveas-install-btn:active { transform: scale(0.98); opacity: 0.88; }
+  .saveas-install-btn.hidden { display: none; }
+
+  /* Footer action */
+  .saveas-footer {
+    padding: 12px 18px 22px;
+    display: flex;
+    justify-content: center;
+  }
+  .saveas-done {
+    width: 100%;
+    padding: 13px;
+    border: 1.5px solid var(--border-warm);
+    border-radius: var(--radius-sm);
+    background: none;
+    font-size: 14px;
+    font-family: var(--sans);
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .saveas-done:active { background: var(--warm-sand); }
+
   /* Pick bar */
   .pick-bar {
     background: var(--card);
@@ -912,6 +1139,19 @@
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <button class="logout-btn" onclick="signOut()">Sign out</button>
+    <button class="add-fab" id="saveAsFabBtn" onclick="openSaveAs()" title="Add to Home Screen" style="background:var(--dark-warm);box-shadow:0 0 0 1px rgba(255,255,255,0.08);">
+      <svg width="17" height="17" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Phone outline -->
+        <rect x="5" y="2" width="12" height="18" rx="2.5" stroke="rgba(255,255,255,0.85)" stroke-width="1.6"/>
+        <!-- Screen -->
+        <rect x="7.5" y="5" width="7" height="9" rx="1" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+        <!-- Plus icon on screen -->
+        <line x1="11" y1="7.5" x2="11" y2="11.5" stroke="rgba(255,255,255,0.85)" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="9" y1="9.5" x2="13" y2="9.5" stroke="rgba(255,255,255,0.85)" stroke-width="1.2" stroke-linecap="round"/>
+        <!-- Home dot -->
+        <circle cx="11" cy="17.5" r="1" fill="rgba(255,255,255,0.5)"/>
+      </svg>
+    </button>
     <button class="add-fab" onclick="openAdd()" title="Add gem">+</button>
   </div>
 </header>
@@ -1019,6 +1259,127 @@
 <!-- Detail modal -->
 <div class="overlay" id="detailOverlay">
   <div class="modal" id="detailModal"></div>
+</div>
+
+<!-- Save As / Add to Home Screen dialog -->
+<div class="saveas-overlay" id="saveAsOverlay" onclick="handleSaveAsOverlayClick(event)">
+  <div class="saveas-modal" id="saveAsModal">
+
+    <!-- Hero header with crystalline gem-phone icon -->
+    <div class="saveas-header-art">
+      <div class="saveas-icon-wrap">
+        <svg viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Phone silhouette -->
+          <rect x="22" y="10" width="40" height="64" rx="7" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+          <rect x="27" y="17" width="30" height="44" rx="3" fill="rgba(255,255,255,0.04)"/>
+          <!-- Home button indicator -->
+          <circle cx="42" cy="67" r="2.5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <!-- Gem on phone screen -->
+          <polygon points="42,22 54,28 54,40 42,46 30,40 30,28" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.35)" stroke-width="1.2"/>
+          <polygon points="42,22 54,28 42,34" fill="rgba(255,255,255,0.22)"/>
+          <polygon points="42,22 30,28 42,34" fill="rgba(255,255,255,0.13)"/>
+          <polygon points="30,28 42,34 30,40" fill="rgba(255,255,255,0.09)"/>
+          <polygon points="54,28 42,34 54,40" fill="rgba(255,255,255,0.17)"/>
+          <polygon points="42,34 30,40 42,46" fill="rgba(255,255,255,0.07)"/>
+          <polygon points="42,34 54,40 42,46" fill="rgba(255,255,255,0.13)"/>
+          <!-- Gem core glow -->
+          <circle cx="42" cy="34" r="4.5" fill="rgba(201,100,66,0.45)"/>
+          <circle cx="42" cy="34" r="2.5" fill="rgba(201,100,66,0.85)"/>
+          <circle cx="42" cy="34" r="1.2" fill="rgba(255,255,255,0.95)"/>
+          <!-- Add/plus badge top-right corner of phone -->
+          <circle cx="60" cy="18" r="9" fill="#c96442"/>
+          <line x1="60" y1="13.5" x2="60" y2="22.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="55.5" y1="18" x2="64.5" y2="18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="saveas-art-title">Add to Home Screen</div>
+      <div class="saveas-art-sub">Install Hidden Gems as an app</div>
+    </div>
+
+    <!-- Platform tabs -->
+    <div class="saveas-tabs">
+      <button class="saveas-tab active" id="tabIos" onclick="switchTab('ios')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        iPhone / iPad
+      </button>
+      <button class="saveas-tab" id="tabAndroid" onclick="switchTab('android')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341l-.97-1.68A6.95 6.95 0 0 0 19 9a6.95 6.95 0 0 0-1.447-4.66l.97-1.68a.5.5 0 0 0-.865-.5l-.97 1.68A6.964 6.964 0 0 0 12 2a6.964 6.964 0 0 0-4.688 1.84l-.97-1.68a.5.5 0 0 0-.865.5l.97 1.68A6.95 6.95 0 0 0 5 9a6.95 6.95 0 0 0 1.447 4.661l-.97 1.68a.5.5 0 0 0 .865.5l.97-1.68A6.964 6.964 0 0 0 12 16a6.964 6.964 0 0 0 4.688-1.84l.97 1.68a.5.5 0 0 0 .865-.5zM9.5 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm5 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/></svg>
+        Android
+      </button>
+    </div>
+
+    <!-- iOS steps -->
+    <div class="saveas-steps" id="stepsIos">
+      <div class="saveas-step">
+        <div class="saveas-step-num">1</div>
+        <div class="saveas-step-body">
+          <div class="saveas-step-title">
+            Tap the Share button
+            <span class="saveas-step-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              Share
+            </span>
+          </div>
+          <div class="saveas-step-desc">Find the share icon in Safari's toolbar (bottom center on iPhone).</div>
+        </div>
+      </div>
+      <div class="saveas-step">
+        <div class="saveas-step-num">2</div>
+        <div class="saveas-step-body">
+          <div class="saveas-step-title">
+            Tap <span class="saveas-step-badge">＋ Add to Home Screen</span>
+          </div>
+          <div class="saveas-step-desc">Scroll down the share sheet and tap this option.</div>
+        </div>
+      </div>
+      <div class="saveas-step">
+        <div class="saveas-step-num">3</div>
+        <div class="saveas-step-body">
+          <div class="saveas-step-title">Tap <span class="saveas-step-badge">Add</span></div>
+          <div class="saveas-step-desc">Hidden Gems will appear on your home screen like a native app.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Android steps -->
+    <div class="saveas-steps" id="stepsAndroid" style="display:none">
+      <div class="saveas-step">
+        <div class="saveas-step-num">1</div>
+        <div class="saveas-step-body">
+          <div class="saveas-step-title">
+            Tap <span class="saveas-step-badge">⋮ Menu</span>
+          </div>
+          <div class="saveas-step-desc">Open Chrome's menu from the three-dot icon in the top right.</div>
+        </div>
+      </div>
+      <div class="saveas-step">
+        <div class="saveas-step-num">2</div>
+        <div class="saveas-step-body">
+          <div class="saveas-step-title">
+            Tap <span class="saveas-step-badge">＋ Add to Home screen</span>
+          </div>
+          <div class="saveas-step-desc">Or look for "Install app" if Chrome detects it automatically.</div>
+        </div>
+      </div>
+      <div class="saveas-step">
+        <div class="saveas-step-num">3</div>
+        <div class="saveas-step-body">
+          <div class="saveas-step-title">Tap <span class="saveas-step-badge">Install</span></div>
+          <div class="saveas-step-desc">The app icon will land on your home screen instantly.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Android native install button (shown when beforeinstallprompt fires) -->
+    <button class="saveas-install-btn hidden" id="saveAsInstallBtn" onclick="triggerInstall()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13M12 15l-4-4M12 15l4-4"/><path d="M3 19h18"/></svg>
+      Install app now
+    </button>
+
+    <div class="saveas-footer">
+      <button class="saveas-done" onclick="closeSaveAs()">Got it — close</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1599,6 +1960,54 @@ async function loadGems() {
 // Close overlays on background tap
 document.getElementById('addOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeAdd(); });
 document.getElementById('detailOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeDetail(); });
+
+// ── Save As / Add to Home Screen ──────────────────────────────────────────────
+
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('saveAsInstallBtn').classList.remove('hidden');
+});
+
+function openSaveAs() {
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  switchTab(isIos ? 'ios' : 'android');
+  document.getElementById('saveAsOverlay').classList.add('open');
+}
+
+function closeSaveAs() {
+  document.getElementById('saveAsOverlay').classList.remove('open');
+}
+
+function handleSaveAsOverlayClick(e) {
+  if (e.target === e.currentTarget) closeSaveAs();
+}
+
+function switchTab(platform) {
+  document.getElementById('tabIos').classList.toggle('active', platform === 'ios');
+  document.getElementById('tabAndroid').classList.toggle('active', platform === 'android');
+  document.getElementById('stepsIos').style.display = platform === 'ios' ? '' : 'none';
+  document.getElementById('stepsAndroid').style.display = platform === 'android' ? '' : 'none';
+  const btn = document.getElementById('saveAsInstallBtn');
+  if (platform === 'android' && deferredInstallPrompt) {
+    btn.classList.remove('hidden');
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+async function triggerInstall() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    deferredInstallPrompt = null;
+    closeSaveAs();
+    showToast('App installed!');
+  }
+}
 
 function locateMe() {
   if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
