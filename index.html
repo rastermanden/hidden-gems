@@ -144,7 +144,7 @@
 
   .locate-fab {
     position: absolute;
-    bottom: 16px;
+    bottom: 44px;
     right: 16px;
     z-index: 1000;
     width: 40px;
@@ -157,15 +157,20 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    transition: background 0.15s, transform 0.15s;
+    transition: background 0.15s, transform 0.15s, border-color 0.15s, color 0.15s;
     color: var(--muted);
   }
-  .locate-fab:active { transform: scale(0.9); background: var(--ivory); }
-  .locate-fab.locating { color: var(--terracotta); }
+  .locate-fab:active { transform: scale(0.9); }
+  @keyframes locate-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .locate-fab.locating { color: var(--terracotta); border-color: var(--terracotta); animation: locate-pulse 1s ease-in-out infinite; }
+  .locate-fab.located { background: var(--terracotta); border-color: var(--terracotta); color: white; }
 
   .layer-fab {
     position: absolute;
-    bottom: 64px;
+    bottom: 92px;
     right: 16px;
     z-index: 1000;
     width: 40px;
@@ -2166,14 +2171,32 @@ async function triggerInstall() {
   }
 }
 
+let locationMarker = null;
+
 function locateMe() {
   if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
   const btn = document.getElementById('locateFab');
+
+  if (btn.classList.contains('located')) {
+    if (locationMarker) { map.removeLayer(locationMarker); locationMarker = null; }
+    btn.classList.remove('located');
+    return;
+  }
+
+  if (btn.classList.contains('locating')) return;
+
   btn.classList.add('locating');
   navigator.geolocation.getCurrentPosition(
     pos => {
       btn.classList.remove('locating');
-      map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, { duration: 1 });
+      btn.classList.add('located');
+      const latlng = [pos.coords.latitude, pos.coords.longitude];
+      if (locationMarker) map.removeLayer(locationMarker);
+      locationMarker = L.circleMarker(latlng, {
+        radius: 8, color: '#fff', weight: 2,
+        fillColor: '#c0392b', fillOpacity: 1
+      }).addTo(map);
+      map.flyTo(latlng, 15, { duration: 1 });
     },
     () => {
       btn.classList.remove('locating');
