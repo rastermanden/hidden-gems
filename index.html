@@ -578,6 +578,26 @@
 
   .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
 
+  .navigate-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+    padding: 13px;
+    background: #1a73e8;
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none;
+  }
+  .navigate-btn:active { background: #1558b0; }
+
   .edit-btn {
     width: 100%;
     padding: 13px;
@@ -1663,6 +1683,7 @@ async function showDetail(gem) {
       <div class="detail-note">${gem.note || '<em style="color:var(--muted-light)">No notes added</em>'}</div>
       ${date ? `<div class="detail-date">Added ${date}</div>` : ''}
       <div class="detail-actions">
+        ${gem.lat && gem.lng ? `<a class="navigate-btn" href="https://www.google.com/maps/dir/?api=1&destination=${parseFloat(gem.lat).toFixed(6)},${parseFloat(gem.lng).toFixed(6)}" target="_blank" rel="noopener noreferrer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Navigate</a>` : ''}
         <button class="edit-btn" onclick="openEdit('${gem.id}')">Edit gem</button>
         <button class="delete-btn" onclick="deleteGem('${gem.id}')">Delete</button>
       </div>
