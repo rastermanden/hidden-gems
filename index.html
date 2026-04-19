@@ -11,32 +11,32 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --terracotta: #2d7a4f;
-    --terracotta-dark: #226040;
-    --coral: #3d9060;
-    --ink: #0e1a13;
-    --dark-surface: #1e3024;
-    --dark-warm: #283d2e;
-    --parchment: #f0f5f1;
-    --ivory: #f6faf7;
-    --warm-sand: #dce8de;
-    --cream: #f0f5f1;
-    --card: #f6faf7;
-    --muted: #4a6652;
-    --muted-light: #7a9a82;
-    --warm-silver: #a5c0ab;
-    --border: #e0eee3;
-    --border-warm: #d8e8db;
-    --ring: #c2d9c6;
+    --terracotta: #c96442;
+    --terracotta-dark: #b35539;
+    --coral: #d97757;
+    --ink: #141413;
+    --dark-surface: #30302e;
+    --dark-warm: #3d3d3a;
+    --parchment: #f5f4ed;
+    --ivory: #faf9f5;
+    --warm-sand: #e8e6dc;
+    --cream: #f5f4ed;
+    --card: #faf9f5;
+    --muted: #5e5d59;
+    --muted-light: #87867f;
+    --warm-silver: #b0aea5;
+    --border: #f0eee6;
+    --border-warm: #e8e6dc;
+    --ring: #d1cfc5;
     --focus-blue: #3898ec;
     --error: #b53333;
     --radius: 20px;
     --radius-sm: 12px;
     --serif: 'Playfair Display', Georgia, serif;
     --sans: 'Inter', system-ui, sans-serif;
-    --shadow-sm: 0 0 0 1px #d8e8db;
-    --shadow-md: rgba(0,0,0,0.05) 0px 4px 24px, 0 0 0 1px #d8e8db;
-    --shadow-lg: rgba(0,0,0,0.08) 0px 8px 32px, 0 0 0 1px #d8e8db;
+    --shadow-sm: 0 0 0 1px #e8e6dc;
+    --shadow-md: rgba(0,0,0,0.05) 0px 4px 24px, 0 0 0 1px #e8e6dc;
+    --shadow-lg: rgba(0,0,0,0.08) 0px 8px 32px, 0 0 0 1px #e8e6dc;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -55,7 +55,7 @@
   header {
     background: var(--ink);
     color: var(--ivory);
-    padding: 14px 16px 13px;
+    padding: 16px 16px 15px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -87,7 +87,7 @@
   }
 
   .header-text p {
-    font-size: 10.5px;
+    font-size: 11.5px;
     opacity: 0.6;
     margin-top: 1px;
     font-weight: 300;
@@ -109,7 +109,7 @@
     font-weight: 300;
     flex-shrink: 0;
     transition: background 0.15s, transform 0.15s;
-    box-shadow: var(--terracotta) 0px 0px 0px 0px, var(--terracotta-dark) 0px 0px 0px 1px;
+    box-shadow: 0 0 0 1px var(--terracotta-dark);
   }
   .add-fab:active { transform: scale(0.9); background: var(--terracotta-dark); }
 
@@ -152,7 +152,7 @@
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     transition: background 0.15s, transform 0.15s;
-    color: var(--text);
+    color: var(--muted);
   }
   .locate-fab:active { transform: scale(0.9); background: var(--ivory); }
   .locate-fab.locating { color: var(--terracotta); }
@@ -188,7 +188,7 @@
   }
 
   .sheet-title {
-    font-size: 10.5px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--muted-light);
     letter-spacing: 0.1em;
@@ -251,6 +251,7 @@
     transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
     border-left: 3px solid transparent;
   }
+  .gem-card:hover { background: var(--warm-sand); }
   .gem-card:active { background: var(--warm-sand); }
   .gem-card.selected {
     border-color: var(--border-warm);
@@ -283,7 +284,7 @@
 
   .gem-info { flex: 1; min-width: 0; }
   .gem-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
-  .gem-note { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .gem-note { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 
   .gem-chevron {
     color: var(--muted-light);
@@ -299,7 +300,7 @@
     padding: 24px 20px 16px;
     color: var(--muted);
   }
-  .empty-state svg { margin-bottom: 10px; opacity: 0.35; }
+  .empty-state svg { margin-bottom: 10px; opacity: 0.5; }
   .empty-state-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 3px; }
   .empty-state-sub { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
 
@@ -358,7 +359,7 @@
     display: flex; align-items: center; justify-content: center;
     transition: background 0.15s;
   }
-  .modal-close:active { background: #e5e7eb; }
+  .modal-close:active { background: var(--warm-sand); }
 
   .modal-body { padding: 16px 18px 4px; }
 
@@ -409,7 +410,7 @@
   }
 
   .photo-zone {
-    border: 1.5px dashed #d1d5db;
+    border: 1.5px dashed var(--border-warm);
     border-radius: var(--radius-sm);
     padding: 22px 20px;
     text-align: center;
@@ -514,7 +515,7 @@
     margin-top: 4px;
     transition: opacity 0.15s, transform 0.12s;
     letter-spacing: 0.01em;
-    box-shadow: var(--terracotta) 0px 0px 0px 0px, var(--terracotta-dark) 0px 0px 0px 1px;
+    box-shadow: 0 0 0 1px var(--terracotta-dark);
   }
   .save-btn:disabled { opacity: 0.45; box-shadow: none; }
   .save-btn:active { transform: scale(0.99); opacity: 0.9; }
@@ -741,7 +742,7 @@
     z-index: 1;
     width: 100%;
     max-width: 360px;
-    background: white;
+    background: var(--ivory);
     border-radius: 20px;
     padding: 26px 24px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.1);
@@ -784,7 +785,7 @@
     font-weight: 500;
     cursor: pointer;
     transition: opacity 0.15s, transform 0.12s;
-    box-shadow: var(--terracotta) 0px 0px 0px 0px, var(--terracotta-dark) 0px 0px 0px 1px;
+    box-shadow: 0 0 0 1px var(--terracotta-dark);
     letter-spacing: 0.01em;
   }
   .auth-btn:disabled { opacity: 0.5; box-shadow: none; }
